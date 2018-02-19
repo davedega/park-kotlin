@@ -28,6 +28,11 @@ class ParkDetalActivity : AppCompatActivity() {
         presenter.loadDetailVehicle(vehicleFromBundle(intent.extras))
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
+
 
     private fun vehicleFromBundle(bundle: Bundle?): Vehicle {
         lateinit var vehicle: Vehicle

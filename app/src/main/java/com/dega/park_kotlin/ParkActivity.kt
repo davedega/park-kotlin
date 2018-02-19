@@ -17,9 +17,9 @@ class ParkActivity : AppCompatActivity() {
         setContentView(R.layout.activity_park)
 
         view = parkFragment as ParkContract.View
-        presenter = ParkPresenter(view)
+        presenter = ParkPresenter(view, applicationContext)
 
-        (view as ParkFragment).presenter = presenter;
+        (view as ParkFragment).presenter = presenter
         presenter.loadVehicles()
     }
 }

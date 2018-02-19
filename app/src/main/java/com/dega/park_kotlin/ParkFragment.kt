@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.dega.park_kotlin.model.Vehicle
 import com.dega.park_kotlin.model.VehiclesResponse
@@ -23,10 +24,8 @@ class ParkFragment : Fragment(), ParkContract.View {
 
     lateinit var presenter: ParkContract.Presenter
 
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.park_fragment, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+            inflater!!.inflate(R.layout.park_fragment, container, false)
 
 
     override fun showVehiclesInList(vehiclesResponse: VehiclesResponse) {
@@ -45,11 +44,10 @@ class ParkFragment : Fragment(), ParkContract.View {
     override fun showErrorMessage(message: Int) {
         logoImageView.visibility = View.VISIBLE
         vehiclesRecyclerView.visibility = View.GONE
-        val mySnackbar = Snackbar.make(logoImageView!!,
+        Snackbar.make(logoImageView!!,
                 message, Snackbar.LENGTH_SHORT)
-        mySnackbar.setAction(R.string.try_again) { presenter!!.loadVehicles() }
-
-        mySnackbar.show()
+                .setAction(R.string.try_again) { presenter.loadVehicles() }
+                .show()
     }
 
     override fun showErrorMessage(message: String) {
@@ -69,32 +67,34 @@ class ParkFragment : Fragment(), ParkContract.View {
                 getString(R.string.last_update, stringDate), Snackbar.LENGTH_LONG).show()
     }
 
+    // The Adapter lives within the view since is the only class who access it
+    internal inner class VehiclesAdapter(var vehicles: List<Vehicle>) :
+            RecyclerView.Adapter<VehiclesAdapter.VehicleViewHolder>() {
 
-    internal inner class VehiclesAdapter(var vehicles: ArrayList<Vehicle>) : RecyclerView.Adapter<VehiclesAdapter.VehicleViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VehicleViewHolder =
+                VehicleViewHolder(LayoutInflater.from(activity.applicationContext).inflate(R.layout.vehicle_list_item, parent, false))
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VehicleViewHolder {
-            val root = LayoutInflater.from(activity.applicationContext).inflate(R.layout.vehicle_list_item, parent, false)
-            return VehicleViewHolder(root)
-        }
 
         override fun onBindViewHolder(holder: VehicleViewHolder, position: Int) {
-            val vehicle = vehicles[position]
-            holder.setVehicleName("" + vehicle.vrn)
+            vehicles[position].let {
+                holder.bind(it, presenter)
+            }
         }
 
-        override fun getItemCount(): Int {
-            return vehicles.size
-        }
+        override fun getItemCount(): Int = vehicles.size
 
         internal inner class VehicleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             var vehicleName: TextView
+            var vehicleItem: LinearLayout
 
             init {
                 this.vehicleName = itemView.findViewById(R.id.vehicleName)
+                this.vehicleItem = itemView.findViewById(R.id.vehicleItem)
             }
 
-            fun setVehicleName(vehicleName: String) {
-                this.vehicleName.text = vehicleName
+            fun bind(vehicle: Vehicle, presenter: ParkContract.Presenter) {
+                vehicleName.text = vehicle.vrn
+                vehicleItem.setOnClickListener { presenter.showDetailInNewView(vehicle) }
             }
         }
     }
